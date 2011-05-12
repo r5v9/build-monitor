@@ -1,0 +1,245 @@
+<html>
+    <head>
+        <style>
+            body {
+                background-color: black;
+                color: white;
+                font-family: arial, helvetica, sans-serif;
+                font-size: 600%;
+                margin: 20pt;
+                color: lightblue;
+            }
+
+            .success {
+                color: lightgreen;
+                border-color: lightgreen;
+            }
+
+            .fail {
+                color: red;
+                border-color: red;
+            }
+			
+            .progress {
+                color: Gold;
+                border-color: Gold;
+            }
+			
+            .aborted {
+                color: lightblue;
+                border-color: lightblue;
+            }
+
+            .build {
+               border: 10px solid;
+                -moz-border-radius: 20px;
+                margin-bottom: 30px;
+				padding: 0px;
+            }
+
+            .build-header {
+                height: 1.4em;
+                border-bottom: 10px solid;
+            }
+
+            .build-status {
+            	font-size: 75%;
+                padding: 20px;
+                float: left;
+            }
+
+            .build-building, .build-building-success, .build-building-fail, .build-building-progress  {
+                float: right;
+                margin-right: 0.5em;
+                margin-top: 0.4em;
+				width: 64px;
+				height: 64px;
+            }
+
+			.build-building-success {
+				background-image: url('building-green.gif');
+				background-repeat: no-repeat;
+			}
+
+			.build-building-fail {
+				background-image: url('building-red.gif');
+				background-repeat: no-repeat;
+			}
+
+            .build-building-progress {
+            	margin-top: 0.2em;
+                background-image: url('building-blue.gif');
+                background-repeat: no-repeat;
+            }
+			
+            .build-footer {
+                height: 1.1em;
+            }
+			
+            .build-last-success-container {
+                width: 31%;
+                float: left;
+                border-right: 10px solid;
+                padding-left: 5px;
+            }
+			
+            .build-last-failure-container {
+                float: left;
+                width: 31%;
+				border-right: 10px solid;
+                padding-left: 5px;
+            }
+
+            .build-elapsed-container {
+                float: left;
+                width: 31%;
+                padding-left: 5px;
+            }
+
+            .build-last-success-title, .build-last-failure-title, .build-elapsed-title {
+                font-size: 30%;
+                padding-left: 10px;
+                padding-top: 5px;
+            }
+
+            .build-last-success, .build-last-failure, .build-elapsed {
+                font-size: 50%;
+                padding-left: 10px;
+                padding-bottom: 10px;
+                font-weight: bold;
+            }
+			
+            .build-last-success-title-success, .build-last-failure-title-success, .build-elapsed-title-success {
+                color: lightgreen;
+				font-size: 30%;
+                padding-left: 10px;
+                padding-top: 5px;
+            }
+
+            .build-last-success-success, .build-last-failure-success, .build-elapsed-success {
+                color: lightgreen;
+				font-size: 50%;
+                padding-left: 10px;
+                padding-bottom: 10px;
+                font-weight: bold;
+            }
+			
+            .build-last-success-title-fail, .build-last-failure-title-fail, .build-elapsed-title-fail {
+                color: red;
+				font-size: 30%;
+                padding-left: 10px;
+                padding-top: 5px;
+            }
+
+            .build-last-success-fail, .build-last-failure-fail, .build-elapsed-fail {
+                color: red;
+				font-size: 50%;
+                padding-left: 10px;
+                padding-bottom: 10px;
+                font-weight: bold;
+            }			
+        </style>
+    </head>
+    <body>
+
+<%
+  def daysHoursMinutes(ms)
+    millisecondsInDay = 24*60*60*1000
+    millisecondsInHour = 60*60*1000
+    millisecondsInMinute = 60*1000
+    days = 0
+    hours = 0
+    minutes = 0
+    if ms > millisecondsInDay
+      days = ms/millisecondsInDay
+      ms = ms - days * millisecondsInDay
+    end
+    if ms > millisecondsInHour
+      hours = ms / millisecondsInHour
+      ms = ms - hours * millisecondsInHour
+    end
+    if ms > millisecondsInMinute
+      minutes = ms / millisecondsInMinute
+    end
+    return days, hours, minutes
+  end
+
+  def daysHoursMinutesToString(days, hours, minutes)
+	s = ""
+    if days > 0
+      s = days.to_s + " day" + (days>1 ? "s" : "")
+    elsif hours>0
+      s = hours.to_s + " hour" + (hours>1 ? "s" : "")
+    elsif minutes>0
+      s += minutes.to_s + " min"
+	else
+      s = "1 min"
+    end
+	return s
+  end
+
+  def formatTimestamp(timestamp)
+    now = Time.now.to_i*1000
+	days, hours, minutes = daysHoursMinutes(now - timestamp.to_i)
+    daysHoursMinutesToString(days, hours, minutes) + " ago"
+  end
+
+  def formatElapsed(elapsed)
+	days, hours, minutes = daysHoursMinutes(elapsed.to_i)
+	daysHoursMinutesToString(days, hours, minutes)
+  end
+%>
+
+
+<% jenkinsList.each do |build| %>
+
+<%
+	if build.building=='true'
+		buildingClass = "build-building-progress"
+        buildingStatus = "progress"
+	else
+ 		buildingClass = "build-building"
+        buildingStatus = build.lastBuildStatus
+	end
+%>
+
+        <div class="build <%=buildingStatus%>">
+            <div class="build-header">
+                <div class="build-status">
+                	<%=build.buildName%>
+                </div>
+                <div class="<%=buildingClass%>">
+                </div>
+            </div>
+            <div class="build-footer">
+                <div class="build-last-success-container">
+                    <div class="build-last-success-title-<%=build.lastBuildStatus%>">
+                        Last success
+                    </div>
+                    <div class="build-last-success-<%=build.lastBuildStatus%>">
+                    	<%=formatTimestamp(build.lastSuccessful.timestamp)%>
+                    </div>
+                </div>
+                <div class="build-last-failure-container">
+                    <div class="build-last-failure-title-<%=build.lastBuildStatus%>">
+                        Last failure
+                    </div>
+                    <div class="build-last-failure-<%=build.lastBuildStatus%>">
+                    	<%=formatTimestamp(build.lastFailed.timestamp)%>
+                    </div>
+                </div>
+                <div class="build-elapsed-container">
+                    <div class="build-elapsed-title-<%=build.lastBuildStatus%>">
+                        Elapsed
+                    </div>
+                    <div class="build-elapsed-<%=build.lastBuildStatus%>">
+                    	<%=formatElapsed(build.lastDuration)%>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<% end %>
+
+    </body>
+</html>

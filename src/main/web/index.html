@@ -1,0 +1,16 @@
+<html>
+<head>
+<style>
+	body { margin: 0; background-color: black; }
+</style>
+<script>
+	setInterval(reloadIframe, 5000);
+	function reloadIframe() {
+		mf = document.getElementById("monitor-iframe")
+		mf.src = mf.src
+	}
+</script>
+</head>
+<body>
+	<iframe id="monitor-iframe" src="monitor.html" width="99%" height="99%" scrolling="no" frameborder="0"/>
+</body>
